@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DevKit — Developer Tools</title>
+  <style>
+    :root {
+      --bg-main: #09090b;
+      --bg-sidebar: #0c0c10;
+      --bg-card: #111116;
+      --bg-surface: #18181f;
+      --bg-input: #14141a;
+      --text-primary: #f4f4f5;
+      --text-secondary: #a1a1aa;
+      --text-muted: #71717a;
+      --border-color: #27272a;
+      --accent: #8b5cf6;
+      --accent-hover: #a78bfa;
+      --accent-alpha: rgba(139, 92, 246, 0.15);
+      --success: #22c55e;
+      --error: #f87171;
+      --warning: #fbbf24;
+      --radius: 8px;
+      --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    }
+
+    [data-theme="light"] {
+      --bg-main: #f8fafc;
+      --bg-sidebar: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-surface: #f1f5f9;
+      --bg-input: #ffffff;
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --accent: #7c3aed;
+      --accent-hover: #6d28d9;
+      --accent-alpha: rgba(124, 58, 237, 0.1);
+      --success: #16a34a;
+      --error: #dc2626;
+      --warning: #d97706;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      line-height: 1.5;
+    }
+
+    .app-container {
+      display: flex;
+      flex: 1;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      width: 250px;
+      background-color: var(--bg-sidebar);
+      border-right: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 30;
+      transition: transform 0.2s ease;
+    }
+
+    .sidebar-header {
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent), #c084fc);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 12px;
+    }
+
+    .nav-section-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin: 16px 8px 8px 8px;
+      font-weight: 600;
+    }
+
+    .nav-section-title:first-child {
+      margin-top: 0;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      border-radius: var(--radius);
+      color: var(--text-secondary);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+      transition: all 0.15s ease;
+    }
+
+    .nav-item:hover {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+    }
+
+    .nav-item.active {
+      background-color: var(--accent-alpha);
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .sidebar-footer {
+      padding: 16px;
+      border-top: 1px solid var(--border-color);
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .author-credit {
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .main-workspace {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background-color: var(--bg-main);
+    }
+
+    .top-bar {
+      height: 60px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background-color: var(--bg-sidebar);
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+
+    .top-bar-title {
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .top-bar-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .icon-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .search-trigger {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      cursor: pointer;
+      width: 200px;
+      justify-content: space-between;
+    }
+
+    .search-trigger:hover {
+      border-color: var(--accent);
+    }
+
+    .kbd {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      padding: 2px 6px;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+    }
+
+    .workspace-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+    }
+
+    .tool-view {
+      display: none;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .tool-view.active {
+      display: block;
+    }
+
+    .tool-header {
+      margin-bottom: 24px;
+    }
+
+    .tool-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .tool-desc {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .grid-tools {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    .tool-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 20px;
+      text-decoration: none;
+      color: var(--text-primary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tool-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    .tool-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      background-color: var(--accent-alpha);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12px;
+    }
+
+    .tool-card-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .tool-card-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+
+    .btn:hover {
+      background-color: var(--border-color);
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #ffffff;
+      border: none;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    textarea, input[type="text"], input[type="number"], select {
+      width: 100%;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 10px 12px;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: 0.875rem;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    textarea.code, input.code {
+      font-family: var(--font-mono);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 140px;
+    }
+
+    .color-picker-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="color"] {
+      -webkit-appearance: none;
+      border: none;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius);
+      cursor: pointer;
+      background: none;
+    }
+
+    input[type="color"]::-webkit-color-swatch-wrapper {
+      padding: 0;
+    }
+
+    input[type="color"]::-webkit-color-swatch {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+    }
+
+    .color-preview-box {
+      height: 120px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-color);
+      margin-bottom: 16px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-box {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-lbl {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 50;
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 10vh;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .search-modal {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      width: 100%;
+      max-width: 550px;
+      overflow: hidden;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5);
+    }
+
+    .search-modal-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-modal-input {
+      width: 100%;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .search-results {
+      max-height: 350px;
+      overflow-y: auto;
+      padding: 8px;
+    }
+
+    .search-item {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      color: var(--text-primary);
+    }
+
+    .search-item:hover, .search-item.selected {
+      background-color: var(--bg-surface);
+    }
+
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background-color: var(--bg-surface);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideIn 0.2s ease forwards;
+    }
+
+    .toast-success { border-left: 4px solid var(--success); }
+    .toast-error { border-left: 4px solid var(--error); }
+    .toast-info { border-left: 4px solid var(--accent); }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .svg-icon {
+      width: 18px;
+      height: 18px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    @media (max-width: 768px) {
+      .app-container { position: relative; }
+      .sidebar {
+        position: absolute;
+        inset: 0 auto 0 0;
+        transform: translateX(-100%);
+      }
+      .sidebar.open { transform: translateX(0); }
+      .mobile-menu-btn { display: block; }
+      .grid-2 { grid-template-columns: 1fr; }
+      .search-trigger { width: 140px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <a href="#" class="brand" onclick="navTo('dashboard')">
+          <div class="brand-logo">&lt;/&gt;</div>
+          <span>DevKit</span>
+        </a>
+      </div>
+      <div class="sidebar-nav">
+        <div class="nav-section-title">General</div>
+        <button class="nav-item active" onclick="navTo('dashboard')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          Dashboard
+        </button>
+        <button class="nav-item" onclick="navTo('all-tools')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+          All Tools
+        </button>
+
+        <div class="nav-section-title">Data</div>
+        <button class="nav-item" onclick="navTo('json')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+          JSON Formatter
+        </button>
+        <button class="nav-item" onclick="navTo('base64')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>
+          Base64 Encoder
+        </button>
+        <button class="nav-item" onclick="navTo('url')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          URL Encoder
+        </button>
+
+        <div class="nav-section-title">Generators</div>
+        <button class="nav-item" onclick="navTo('uuid')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+          UUID Generator
+        </button>
+        <button class="nav-item" onclick="navTo('color')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12.001" cy="12" r="10"></circle><path d="M12 2a7 7 0 1 0 10 10"></path></svg>
+          Color Studio
+        </button>
+
+        <div class="nav-section-title">Utilities</div>
+        <button class="nav-item" onclick="navTo('text')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+          Text Tools
+        </button>
+        <button class="nav-item" onclick="navTo('timestamp')">
+          <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          Timestamp Converter
+        </button>
+      </div>
+      <div class="sidebar-footer">
+        Crafted by <span class="author-credit">Sahriar Ekhlas</span>
+      </div>
+    </aside>
+
+    <div class="main-workspace">
+      <header class="top-bar">
+        <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">
+          <svg class="svg-icon" viewBox="0 0 24 24"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        </button>
+        <div class="top-bar-title" id="pageTitle">Dashboard</div>
+        <div class="top-bar-actions">
+          <button class="search-trigger" onclick="openSearchModal()">
+            <span>Search...</span>
+            <span class="kbd">⌘K</span>
+          </button>
+          <button class="icon-btn" onclick="toggleTheme()" title="Toggle Theme">
+            <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace-content">
+        <div class="tool-view active" id="view-dashboard">
+          <div class="tool-header">
+            <h1 class="tool-title">Developer Toolkit</h1>
+            <p class="tool-desc">Essential developer utilities for formatting, encoding, and generating data.</p>
+          </div>
+          <div class="grid-tools" id="dashboardToolsGrid"></div>
+        </div>
+
+        <div class="tool-view" id="view-all-tools">
+          <div class="tool-header">
+            <h1 class="tool-title">All Tools</h1>
+            <p class="tool-desc">Full suite of client-side developer tools.</p>
+          </div>
+          <div class="grid-tools" id="allToolsGrid"></div>
+        </div>
+
+        <div class="tool-view" id="view-json">
+          <div class="tool-header">
+            <h1 class="tool-title">JSON Formatter & Validator</h1>
+            <p class="tool-desc">Parse, format, minify, and validate JSON data structures.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="processJSON('format')">Format JSON</button>
+            <button class="btn" onclick="processJSON('minify')">Minify JSON</button>
+            <button class="btn" onclick="processJSON('validate')">Validate Syntax</button>
+            <button class="btn" onclick="loadJSONSample()">Load Sample</button>
+            <button class="btn" onclick="clearJSON()">Clear</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Indentation Option</label>
+            <select id="jsonIndent" style="width: 150px;">
+              <option value="2">2 Spaces</option>
+              <option value="4">4 Spaces</option>
+              <option value="tab">Tabs</option>
+            </select>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Input JSON</label>
+              <textarea id="jsonInput" class="code" rows="14" placeholder="Paste JSON here..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Output</label>
+              <textarea id="jsonOutput" class="code" rows="14" readonly placeholder="Result will appear here..."></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button class="btn" onclick="copyToClipboard(document.getElementById('jsonOutput').value)">Copy Output</button>
+                <button class="btn" onclick="downloadJSON()">Download .json</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-view" id="view-base64">
+          <div class="tool-header">
+            <h1 class="tool-title">Base64 Encoder / Decoder</h1>
+            <p class="tool-desc">Unicode-safe UTF-8 Base64 text transformation.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="processBase64('encode')">Encode Base64</button>
+            <button class="btn" onclick="processBase64('decode')">Decode Base64</button>
+            <button class="btn" onclick="swapBase64()">Swap Input/Output</button>
+            <button class="btn" onclick="clearBase64()">Clear</button>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Input Text</label>
+              <textarea id="base64Input" class="code" rows="10" placeholder="Enter plain text or Base64..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Output Text</label>
+              <textarea id="base64Output" class="code" rows="10" readonly placeholder="Result..."></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button class="btn" onclick="copyToClipboard(document.getElementById('base64Output').value)">Copy Output</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-view" id="view-url">
+          <div class="tool-header">
+            <h1 class="tool-title">URL Encoder / Decoder & Parser</h1>
+            <p class="tool-desc">Encode standard URL components or parse structured absolute URLs.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="processURL('encode')">Encode Component</button>
+            <button class="btn" onclick="processURL('decode')">Decode Component</button>
+            <button class="btn" onclick="processURL('parse')">Parse Full URL</button>
+            <button class="btn" onclick="clearURL()">Clear</button>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Input URL / String</label>
+              <textarea id="urlInput" class="code" rows="10" placeholder="Enter URL or raw string..."></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Output / Parsed Components</label>
+              <textarea id="urlOutput" class="code" rows="10" readonly placeholder="Result..."></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button class="btn" onclick="copyToClipboard(document.getElementById('urlOutput').value)">Copy Output</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-view" id="view-uuid">
+          <div class="tool-header">
+            <h1 class="tool-title">UUID Generator</h1>
+            <p class="tool-desc">Generate RFC4122 Version-4 Universally Unique Identifiers using Crypto API.</p>
+          </div>
+          <div class="card">
+            <div style="display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Quantity (1-100)</label>
+                <input type="number" id="uuidQuantity" value="5" min="1" max="100" style="width: 120px;">
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label class="form-label">Uppercase Format</label>
+                <select id="uuidCase" style="width: 120px;">
+                  <option value="lower">lowercase</option>
+                  <option value="upper">UPPERCASE</option>
+                </select>
+              </div>
+              <button class="btn btn-primary" onclick="generateUUIDs()">Generate UUIDs</button>
+              <button class="btn" onclick="copyToClipboard(document.getElementById('uuidOutput').value)">Copy All</button>
+            </div>
+          </div>
+          <div class="form-group">
+            <textarea id="uuidOutput" class="code" rows="12" readonly placeholder="Generated UUIDs will appear here..."></textarea>
+          </div>
+        </div>
+
+        <div class="tool-view" id="view-color">
+          <div class="tool-header">
+            <h1 class="tool-title">Color & Gradient Studio</h1>
+            <p class="tool-desc">Create custom colors, analyze formats, and design linear gradients.</p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3 style="margin-bottom: 12px; font-size: 1rem;">Solid Color Inspector</h3>
+              <div class="form-group">
+                <div class="color-picker-wrapper">
+                  <input type="color" id="solidColorPicker" value="#8b5cf6" oninput="updateSolidFromPicker(this.value)">
+                  <input type="text" id="solidHexInput" class="code" value="#8b5cf6" oninput="updateSolidFromHex(this.value)">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">RGB Format</label>
+                <input type="text" id="solidRgbVal" class="code" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">HSL Format</label>
+                <input type="text" id="solidHslVal" class="code" readonly>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-bottom: 12px; font-size: 1rem;">Gradient Generator</h3>
+              <div class="color-preview-box" id="gradientBox"></div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label class="form-label">Color 1</label>
+                  <input type="color" id="gradColor1" value="#8b5cf6" onchange="renderGradient()">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Color 2</label>
+                  <input type="color" id="gradColor2" value="#3b82f6" onchange="renderGradient()">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Angle (Degrees: <span id="angleVal">90</span>°)</label>
+                <input type="range" id="gradAngle" min="0" max="360" value="90" style="width: 100%;" oninput="renderGradient()">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Generated CSS Code</label>
+                <input type="text" id="gradCssOutput" class="code" readonly>
+              </div>
+              <button class="btn btn-primary" onclick="copyToClipboard(document.getElementById('gradCssOutput').value)">Copy CSS</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-view" id="view-text">
+          <div class="tool-header">
+            <h1 class="tool-title">Text Tools & Analyzer</h1>
+            <p class="tool-desc">Count characters, transform cases, remove duplicates, and clean whitespace.</p>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-box"><div class="stat-val" id="statChars">0</div><div class="stat-lbl">Characters</div></div>
+            <div class="stat-box"><div class="stat-val" id="statWords">0</div><div class="stat-lbl">Words</div></div>
+            <div class="stat-box"><div class="stat-val" id="statLines">0</div><div class="stat-lbl">Lines</div></div>
+            <div class="stat-box"><div class="stat-val" id="statParas">0</div><div class="stat-lbl">Paragraphs</div></div>
+          </div>
+          <div class="btn-group">
+            <button class="btn" onclick="transformText('upper')">UPPERCASE</button>
+            <button class="btn" onclick="transformText('lower')">lowercase</button>
+            <button class="btn" onclick="transformText('title')">Title Case</button>
+            <button class="btn" onclick="transformText('trim')">Trim Space</button>
+            <button class="btn" onclick="transformText('dedupe')">Remove Duplicates</button>
+            <button class="btn" onclick="transformText('sort')">Sort Lines</button>
+            <button class="btn" onclick="transformText('reverse')">Reverse Text</button>
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Input Text</label>
+              <textarea id="textInput" rows="10" placeholder="Type or paste text..." oninput="analyzeText()"></textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Transformed Output</label>
+              <textarea id="textOutput" rows="10" readonly placeholder="Result..."></textarea>
+              <div class="btn-group" style="margin-top: 8px;">
+                <button class="btn" onclick="copyToClipboard(document.getElementById('textOutput').value)">Copy Output</button>
+                <button class="btn" onclick="applyTextOutput()">Use as Input</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-view" id="view-timestamp">
+          <div class="tool-header">
+            <h1 class="tool-title">Unix Timestamp Converter</h1>
+            <p class="tool-desc">Convert Unix timestamps to readable human dates and vice versa.</p>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <h3 style="margin-bottom: 12px; font-size: 1rem;">Timestamp to Date</h3>
+              <div class="form-group">
+                <label class="form-label">Unix Timestamp</label>
+                <input type="text" id="tsInput" class="code" placeholder="e.g. 1700000000">
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-primary" onclick="convertTimestamp()">Convert Timestamp</button>
+                <button class="btn" onclick="setNowTimestamp()">Set Current Time</button>
+              </div>
+              <div class="form-group" style="margin-top: 12px;">
+                <label class="form-label">UTC Format</label>
+                <input type="text" id="tsUtcResult" class="code" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Local Timezone</label>
+                <input type="text" id="tsLocalResult" class="code" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">ISO 8601</label>
+                <input type="text" id="tsIsoResult" class="code" readonly>
+              </div>
+            </div>
+
+            <div class="card">
+              <h3 style="margin-bottom: 12px; font-size: 1rem;">Date to Timestamp</h3>
+              <div class="form-group">
+                <label class="form-label">Date & Time Target</label>
+                <input type="datetime-local" id="dateInput" style="width: 100%; background: var(--bg-input); border: 1px solid var(--border-color); color: var(--text-primary); padding: 8px; border-radius: var(--radius);">
+              </div>
+              <button class="btn btn-primary" onclick="convertDateToTs()">Convert to Timestamp</button>
+              <div class="form-group" style="margin-top: 12px;">
+                <label class="form-label">Unix Seconds</label>
+                <input type="text" id="tsSecResult" class="code" readonly>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Unix Milliseconds</label>
+                <input type="text" id="tsMsResult" class="code" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="searchModal" onclick="closeSearchModal(event)">
+    <div class="search-modal" onclick="event.stopPropagation()">
+      <div class="search-modal-header">
+        <input type="text" class="search-modal-input" id="modalSearchInput" placeholder="Search developer tools..." oninput="filterSearchResults()">
+      </div>
+      <div class="search-results" id="searchResultsContainer"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script>
+    const toolsData = [
+      { id: 'json', name: 'JSON Formatter', desc: 'Parse, format, minify, and validate JSON syntax.', category: 'Data' },
+      { id: 'base64', name: 'Base64 Encoder', desc: 'Encode and decode UTF-8 safe text to Base64.', category: 'Data' },
+      { id: 'url', name: 'URL Encoder', desc: 'Encode URL parameters or parse structured URLs.', category: 'Data' },
+      { id: 'uuid', name: 'UUID Generator', desc: 'Generate unique RFC4122 V4 identifiers via Crypto.', category: 'Generators' },
+      { id: 'color', name: 'Color Studio', desc: 'Inspect colors, convert formats, and design CSS gradients.', category: 'Generators' },
+      { id: 'text', name: 'Text Tools', desc: 'Analyze counts, clean whitespace, and transform text lines.', category: 'Utilities' },
+      { id: 'timestamp', name: 'Timestamp Converter', desc: 'Convert Unix epoch timestamps to human readable dates.', category: 'Utilities' }
+    ];
+
+    function initApp() {
+      renderDashboardGrid();
+      setupHexDefaults();
+      renderGradient();
+      setNowTimestamp();
+      setupKeyboardShortcuts();
+    }
+
+    function navTo(toolId) {
+      document.querySelectorAll('.tool-view').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+
+      const view = document.getElementById('view-' + toolId);
+      if (view) {
+        view.classList.add('active');
+        document.getElementById('pageTitle').textContent = toolId === 'dashboard' ? 'Dashboard' : toolId === 'all-tools' ? 'All Tools' : toolsData.find(t => t.id === toolId)?.name || 'Tool';
+      }
+
+      const activeNavBtn = Array.from(document.querySelectorAll('.nav-item')).find(btn => btn.getAttribute('onclick')?.includes(`'${toolId}'`));
+      if (activeNavBtn) activeNavBtn.classList.add('active');
+
+      if (window.innerWidth <= 768) {
+        document.getElementById('sidebar').classList.remove('open');
+      }
+    }
+
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function renderDashboardGrid() {
+      const dbGrid = document.getElementById('dashboardToolsGrid');
+      const allGrid = document.getElementById('allToolsGrid');
+      
+      const html = toolsData.map(t => `
+        <div class="tool-card" onclick="navTo('${t.id}')">
+          <div class="tool-card-icon">
+            <svg class="svg-icon" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </div>
+          <div class="tool-card-title">${t.name}</div>
+          <div class="tool-card-desc">${t.desc}</div>
+        </div>
+      `).join('');
+
+      if (dbGrid) dbGrid.innerHTML = html;
+      if (allGrid) allGrid.innerHTML = html;
+    }
+
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('devkit_theme', next);
+      showToast('Theme switched to ' + next, 'info');
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+
+    function copyToClipboard(text) {
+      if (!text) {
+        showToast('Nothing to copy', 'error');
+        return;
+      }
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text)
+          .then(() => showToast('Copied to clipboard!'))
+          .catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const area = document.createElement('textarea');
+      area.value = text;
+      document.body.appendChild(area);
+      area.select();
+      try {
+        document.execCommand('copy');
+        showToast('Copied to clipboard!');
+      } catch (e) {
+        showToast('Failed to copy', 'error');
+      }
+      document.body.removeChild(area);
+    }
+
+    function openSearchModal() {
+      document.getElementById('searchModal').classList.add('active');
+      const input = document.getElementById('modalSearchInput');
+      input.value = '';
+      input.focus();
+      filterSearchResults();
+    }
+
+    function closeSearchModal(e) {
+      document.getElementById('searchModal').classList.remove('active');
+    }
+
+    function filterSearchResults() {
+      const query = document.getElementById('modalSearchInput').value.toLowerCase();
+      const container = document.getElementById('searchResultsContainer');
+      const filtered = toolsData.filter(t => t.name.toLowerCase().includes(query) || t.desc.toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div style="padding: 12px; color: var(--text-muted); text-align: center;">No matching tools found</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(t => `
+        <div class="search-item" onclick="navTo('${t.id}'); closeSearchModal();">
+          <div>
+            <div style="font-weight: 600;">${t.name}</div>
+            <div style="font-size: 0.75rem; color: var(--text-secondary);">${t.desc}</div>
+          </div>
+          <span class="kbd">${t.category}</span>
+        </div>
+      `).join('');
+    }
+
+    function setupKeyboardShortcuts() {
+      document.addEventListener('keydown', (e) => {
+        if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+          e.preventDefault();
+          openSearchModal();
+        }
+        if (e.key === 'Escape') {
+          closeSearchModal();
+        }
+      });
+    }
+
+    function processJSON(action) {
+      const input = document.getElementById('jsonInput').value;
+      const output = document.getElementById('jsonOutput');
+      const indentVal = document.getElementById('jsonIndent').value;
+      const indent = indentVal === 'tab' ? '\t' : parseInt(indentVal);
+
+      if (!input.trim()) {
+        showToast('Please enter JSON text', 'error');
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(input);
+        if (action === 'format') {
+          output.value = JSON.stringify(parsed, null, indent);
+          showToast('JSON formatted');
+        } else if (action === 'minify') {
+          output.value = JSON.stringify(parsed);
+          showToast('JSON minified');
+        } else if (action === 'validate') {
+          output.value = 'Valid JSON Syntax!';
+          showToast('JSON is valid');
+        }
+      } catch (err) {
+        output.value = 'Syntax Error: ' + err.message;
+        showToast('Invalid JSON syntax', 'error');
+      }
+    }
+
+    function loadJSONSample() {
+      const sample = {
+        name: "DevKit",
+        version: "1.0",
+        features: ["JSON", "Base64", "UUID", "Color Studio"],
+        active: true,
+        author: { name: "Sahriar Ekhlas" }
+      };
+      document.getElementById('jsonInput').value = JSON.stringify(sample, null, 2);
+    }
+
+    function clearJSON() {
+      document.getElementById('jsonInput').value = '';
+      document.getElementById('jsonOutput').value = '';
+    }
+
+    function downloadJSON() {
+      const content = document.getElementById('jsonOutput').value;
+      if (!content) return;
+      const blob = new Blob([content], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'data.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function utf8ToBase64(str) {
+      return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+    }
+
+    function base64ToUtf8(str) {
+      return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+    }
+
+    function processBase64(action) {
+      const input = document.getElementById('base64Input').value;
+      const output = document.getElementById('base64Output');
+      if (!input) return;
+
+      try {
+        if (action === 'encode') {
+          output.value = utf8ToBase64(input);
+          showToast('Encoded to Base64');
+        } else {
+          output.value = base64ToUtf8(input);
+          showToast('Decoded Base64');
+        }
+      } catch (e) {
+        output.value = 'Error: Invalid Base64 data sequence.';
+        showToast('Base64 execution failed', 'error');
+      }
+    }
+
+    function swapBase64() {
+      const inEl = document.getElementById('base64Input');
+      const outEl = document.getElementById('base64Output');
+      const temp = inEl.value;
+      inEl.value = outEl.value;
+      outEl.value = temp;
+    }
+
+    function clearBase64() {
+      document.getElementById('base64Input').value = '';
+      document.getElementById('base64Output').value = '';
+    }
+
+    function processURL(action) {
+      const input = document.getElementById('urlInput').value;
+      const output = document.getElementById('urlOutput');
+      if (!input) return;
+
+      try {
+        if (action === 'encode') {
+          output.value = encodeURIComponent(input);
+          showToast('URL Encoded');
+        } else if (action === 'decode') {
+          output.value = decodeURIComponent(input);
+          showToast('URL Decoded');
+        } else if (action === 'parse') {
+          const parsed = new URL(input);
+          const obj = {
+            href: parsed.href,
+            protocol: parsed.protocol,
+            host: parsed.host,
+            hostname: parsed.hostname,
+            port: parsed.port,
+            pathname: parsed.pathname,
+            search: parsed.search,
+            hash: parsed.hash,
+            origin: parsed.origin
+          };
+          output.value = JSON.stringify(obj, null, 2);
+          showToast('URL Parsed');
+        }
+      } catch (e) {
+        output.value = 'Error parsing URL: ' + e.message;
+        showToast('URL Operation Failed', 'error');
+      }
+    }
+
+    function clearURL() {
+      document.getElementById('urlInput').value = '';
+      document.getElementById('urlOutput').value = '';
+    }
+
+    function generateUUIDs() {
+      const qty = Math.min(Math.max(parseInt(document.getElementById('uuidQuantity').value) || 1, 1), 100);
+      const isUpper = document.getElementById('uuidCase').value === 'upper';
+      const list = [];
+
+      for (let i = 0; i < qty; i++) {
+        let uuid = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16 | 0;
+          const v = c === 'x' ? r : (r & 0x3 | 0x8);
+          return v.toString(16);
+        });
+        if (isUpper) uuid = uuid.toUpperCase();
+        list.push(uuid);
+      }
+
+      document.getElementById('uuidOutput').value = list.join('\n');
+      showToast(`Generated ${qty} UUID(s)`);
+    }
+
+    function hexToRgb(hex) {
+      const clean = hex.replace('#', '');
+      const num = parseInt(clean.length === 3 ? clean.split('').map(c => c + c).join('') : clean, 16);
+      return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
+    }
+
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      let h, s, l = (max + min) / 2;
+      if (max === min) {
+        h = s = 0;
+      } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+          case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+          case g: h = (b - r) / d + 2; break;
+          case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+      }
+      return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+    }
+
+    function setupHexDefaults() {
+      updateSolidFromHex('#8b5cf6');
+    }
+
+    function updateSolidFromPicker(val) {
+      document.getElementById('solidHexInput').value = val;
+      updateSolidFromHex(val);
+    }
+
+    function updateSolidFromHex(val) {
+      if (!/^#([0-9A-F]{3}){1,2}$/i.test(val)) return;
+      document.getElementById('solidColorPicker').value = val;
+      const rgb = hexToRgb(val);
+      document.getElementById('solidRgbVal').value = `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+      const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+      document.getElementById('solidHslVal').value = `hsl(${hsl.h}, ${hsl.s}%, ${hsl.l}%)`;
+    }
+
+    function renderGradient() {
+      const c1 = document.getElementById('gradColor1').value;
+      const c2 = document.getElementById('gradColor2').value;
+      const angle = document.getElementById('gradAngle').value;
+      document.getElementById('angleVal').textContent = angle;
+      const css = `linear-gradient(${angle}deg, ${c1}, ${c2})`;
+      document.getElementById('gradientBox').style.background = css;
+      document.getElementById('gradCssOutput').value = `background: ${css};`;
+    }
+
+    function analyzeText() {
+      const txt = document.getElementById('textInput').value;
+      document.getElementById('statChars').textContent = txt.length;
+      document.getElementById('statWords').textContent = txt.trim() ? txt.trim().split(/\s+/).length : 0;
+      document.getElementById('statLines').textContent = txt ? txt.split('\n').length : 0;
+      document.getElementById('statParas').textContent = txt ? txt.split(/\n\s*\n/).filter(Boolean).length : 0;
+    }
+
+    function transformText(action) {
+      const input = document.getElementById('textInput').value;
+      const output = document.getElementById('textOutput');
+      if (!input) return;
+
+      if (action === 'upper') output.value = input.toUpperCase();
+      if (action === 'lower') output.value = input.toLowerCase();
+      if (action === 'title') output.value = input.replace(/\w\S*/g, txt => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+      if (action === 'trim') output.value = input.replace(/\s+/g, ' ').trim();
+      if (action === 'dedupe') output.value = Array.from(new Set(input.split('\n'))).join('\n');
+      if (action === 'sort') output.value = input.split('\n').sort().join('\n');
+      if (action === 'reverse') output.value = input.split('').reverse().join('');
+      showToast('Text transformed');
+    }
+
+    function applyTextOutput() {
+      const out = document.getElementById('textOutput').value;
+      if (!out) return;
+      document.getElementById('textInput').value = out;
+      analyzeText();
+    }
+
+    function convertTimestamp() {
+      const val = document.getElementById('tsInput').value.trim();
+      if (!val) return;
+      let ts = parseInt(val);
+      if (isNaN(ts)) {
+        showToast('Invalid timestamp', 'error');
+        return;
+      }
+      if (val.length === 10) ts *= 1000;
+      const date = new Date(ts);
+      document.getElementById('tsUtcResult').value = date.toUTCString();
+      document.getElementById('tsLocalResult').value = date.toString();
+      document.getElementById('tsIsoResult').value = date.toISOString();
+    }
+
+    function setNowTimestamp() {
+      const now = Math.floor(Date.now() / 1000);
+      document.getElementById('tsInput').value = now;
+      convertTimestamp();
+    }
+
+    function convertDateToTs() {
+      const val = document.getElementById('dateInput').value;
+      if (!val) return;
+      const date = new Date(val);
+      const ms = date.getTime();
+      document.getElementById('tsSecResult').value = Math.floor(ms / 1000);
+      document.getElementById('tsMsResult').value = ms;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('devkit_theme');
+      if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+      }
+      initApp();
+    });
+  </script>
+</body>
+</html>
